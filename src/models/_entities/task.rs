@@ -15,7 +15,7 @@ pub struct Model {
     #[sea_orm(unique)]
     pub uuid: String,
     pub date_created: DateTime,
-    pub date_updated: Option<String>,
+    pub date_updated: Option<DateTime>,
     pub user_id: i32,
 }
 

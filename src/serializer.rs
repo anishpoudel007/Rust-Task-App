@@ -70,7 +70,7 @@ pub struct TaskSerializer {
     pub description: String,
     pub status: String,
     pub uuid: String,
-    pub date_created: chrono::naive::NaiveDateTime,
+    pub date_created: String,
     pub date_updated: Option<String>,
 }
 
@@ -82,8 +82,8 @@ impl From<task::Model> for TaskSerializer {
             description: value.description,
             status: value.status,
             uuid: value.uuid,
-            date_created: value.date_created,
-            date_updated: value.date_updated,
+            date_created: value.date_created.to_string(),
+            date_updated: value.date_updated.map(|v| v.to_string()),
         }
     }
 }

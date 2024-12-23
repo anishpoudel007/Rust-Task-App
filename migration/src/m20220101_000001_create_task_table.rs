@@ -25,7 +25,7 @@ impl MigrationTrait for Migration {
                     )
                     .col(string(Task::Uuid).unique_key())
                     .col(date_time(Task::DateCreated).default(Expr::current_timestamp()))
-                    .col(string_null(Task::DateUpdated))
+                    .col(date_time_null(Task::DateUpdated))
                     .col(integer(Task::UserId))
                     .foreign_key(
                         ForeignKey::create()
