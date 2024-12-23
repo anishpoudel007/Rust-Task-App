@@ -8,6 +8,8 @@ pub struct UserSerializer {
     pub name: String,
     pub username: String,
     pub email: String,
+    pub date_created: String,
+    pub date_updated: Option<String>,
 }
 
 impl From<user::Model> for UserSerializer {
@@ -17,6 +19,8 @@ impl From<user::Model> for UserSerializer {
             name: value.name,
             username: value.username,
             email: value.email,
+            date_created: value.date_created.to_string(),
+            date_updated: value.date_updated.map(|v| v.to_string()),
         }
     }
 }
@@ -44,6 +48,8 @@ pub struct UserWithProfileSerializer {
     pub name: String,
     pub username: String,
     pub email: String,
+    pub date_created: String,
+    pub date_updated: Option<String>,
     pub profile: Option<UserProfileSerializer>,
 }
 
@@ -58,6 +64,8 @@ impl From<(user::Model, Option<user_profile::Model>)> for UserWithProfileSeriali
             name: user.name,
             username: user.username,
             email: user.email,
+            date_created: user.date_created.to_string(),
+            date_updated: user.date_updated.map(|v| v.to_string()),
             profile: profile_serializer,
         }
     }
