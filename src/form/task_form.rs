@@ -21,3 +21,15 @@ pub struct UpdateTaskRequest {
     pub description: Option<String>,
     pub status: String,
 }
+
+#[derive(Debug, Deserialize, Serialize, Validate)]
+pub struct UpdateTaskStatusRequest {
+    #[validate(length(min = 3, message = "Must have at least 3 characters"))]
+    pub status: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, Validate)]
+pub struct UpdateTaskPriorityRequest {
+    #[validate(length(min = 3, message = "Must have at least 3 characters"))]
+    pub priority: String,
+}
