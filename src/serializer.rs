@@ -1,4 +1,5 @@
 use serde::Serialize;
+use utoipa::ToSchema;
 
 use crate::models::_entities::{task, user, user_profile};
 
@@ -71,7 +72,7 @@ impl From<(user::Model, Option<user_profile::Model>)> for UserWithProfileSeriali
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct TaskSerializer {
     pub id: i32,
     pub title: String,

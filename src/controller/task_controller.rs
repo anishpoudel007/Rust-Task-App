@@ -7,9 +7,10 @@ use axum::{
     Extension, Json, Router,
 };
 use sea_orm::{
-    ActiveModelTrait, ColumnTrait, IntoActiveModel, ModelTrait, PaginatorTrait, QueryFilter,
-    QueryOrder, Set,
+    ActiveModelTrait, ColumnTrait, EntityTrait, IntoActiveModel, ModelTrait, PaginatorTrait,
+    QueryFilter, QueryOrder, Set,
 };
+use utoipa_axum::{router::OpenApiRouter, routes};
 use validator::Validate;
 
 use crate::{
@@ -34,44 +35,33 @@ pub async fn get_routes() -> Router<Arc<AppState>> {
         .route("/:task_uuid/update_priority", put(update_task_priority))
 }
 
+pub async fn get_router() -> OpenApiRouter<Arc<AppState>> {
+    OpenApiRouter::new().routes(routes!(get_tasks))
+}
+
+#[utoipa::path(
+        get,
+        path = "",
+        tag = "task",
+        responses(
+            (status = 200, description = "List all todos successfully", body = [TaskSerializer])
+        )
+    )]
 #[axum::debug_handler]
 pub async fn get_tasks(
     State(app_state): State<Arc<AppState>>,
     Query(params): Query<HashMap<String, String>>,
     OriginalUri(original_uri): OriginalUri,
-    Extension(user_model): Extension<user::Model>,
+    // Extension(user_model): Extension<user::Model>,
 ) -> Result<impl IntoResponse, AppError> {
-    let mut task_query = user_model.find_related(task::Entity);
-
-    if let Some(status) = params.get("status") {
-        task_query = task_query.filter(task::Column::Status.eq(status))
-    }
-
-    let page = params
-        .get("page")
-        .and_then(|s| s.parse::<u64>().ok())
-        .unwrap_or(1);
-
-    let task_count = task_query.clone().count(&app_state.db).await?;
-
-    let response_metadata = ResponseMetadata {
-        count: task_count,
-        per_page: 10,
-        total_page: task_count.div_ceil(10),
-        current_url: Some(original_uri.to_string()),
-        ..Default::default()
-    };
-
-    let tasks: Vec<TaskSerializer> = task_query
-        .order_by(task::Column::DateCreated, sea_orm::Order::Desc)
-        .paginate(&app_state.db, 10)
-        .fetch_page(page - 1)
+    let tasks: Vec<TaskSerializer> = task::Entity::find()
+        .all(&app_state.db)
         .await?
-        .iter()
-        .map(|task| TaskSerializer::from(task.clone()))
+        .into_iter()
+        .map(TaskSerializer::from)
         .collect();
 
-    Ok(JsonResponse::paginate(tasks, response_metadata, None))
+    Ok(Json(tasks))
 }
 
 #[axum::debug_handler]
