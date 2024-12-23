@@ -23,9 +23,25 @@ impl MigrationTrait for Migration {
                                     .is_in(StatusEnum::iter().skip(1).map(|item| item.to_string())),
                             ),
                     )
+                    .col(
+                        enumeration(
+                            Task::Priority,
+                            PriorityEnum::Table,
+                            PriorityEnum::iter().skip(1),
+                        )
+                        .default(PriorityEnum::High.to_string())
+                        .check(
+                            Expr::col(Task::Priority)
+                                .is_in(PriorityEnum::iter().skip(1).map(|item| item.to_string())),
+                        ),
+                    )
                     .col(string(Task::Uuid).unique_key())
-                    .col(date_time(Task::DateCreated).default(Expr::current_timestamp()))
-                    .col(date_time_null(Task::DateUpdated))
+                    .col(timestamp_with_time_zone_null(Task::DueDate))
+                    .col(
+                        timestamp_with_time_zone(Task::DateCreated)
+                            .default(Expr::current_timestamp()),
+                    )
+                    .col(timestamp_with_time_zone_null(Task::DateUpdated))
                     .col(integer(Task::UserId))
                     .foreign_key(
                         ForeignKey::create()
@@ -70,6 +86,8 @@ enum Task {
     Description,
     Status,
     Uuid,
+    Priority,
+    DueDate,
     DateCreated,
     DateUpdated,
 }
@@ -86,4 +104,12 @@ enum StatusEnum {
 enum User {
     Table,
     Id,
+}
+
+#[derive(Iden, EnumIter)]
+enum PriorityEnum {
+    Table,
+    Low,
+    Medium,
+    High,
 }

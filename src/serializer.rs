@@ -77,7 +77,9 @@ pub struct TaskSerializer {
     pub title: String,
     pub description: String,
     pub status: String,
+    pub priority: String,
     pub uuid: String,
+    pub due_date: Option<String>,
     pub date_created: String,
     pub date_updated: Option<String>,
 }
@@ -89,7 +91,9 @@ impl From<task::Model> for TaskSerializer {
             title: value.title,
             description: value.description,
             status: value.status,
+            priority: value.priority,
             uuid: value.uuid,
+            due_date: value.due_date.map(|v| v.to_string()),
             date_created: value.date_created.to_string(),
             date_updated: value.date_updated.map(|v| v.to_string()),
         }

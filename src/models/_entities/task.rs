@@ -12,10 +12,13 @@ pub struct Model {
     pub description: String,
     #[sea_orm(column_type = "custom(\"enum_text\")")]
     pub status: String,
+    #[sea_orm(column_type = "custom(\"enum_text\")")]
+    pub priority: String,
     #[sea_orm(unique)]
     pub uuid: String,
-    pub date_created: DateTime,
-    pub date_updated: Option<DateTime>,
+    pub due_date: Option<DateTimeWithTimeZone>,
+    pub date_created: DateTimeWithTimeZone,
+    pub date_updated: Option<DateTimeWithTimeZone>,
     pub user_id: i32,
 }
 

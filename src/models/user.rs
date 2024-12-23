@@ -8,15 +8,15 @@ impl ActiveModelBehavior for ActiveModel {
     where
         C: ConnectionTrait,
     {
-        let now = chrono::Utc::now().naive_utc();
+        let now = chrono::Utc::now();
 
         if insert && self.date_created.is_not_set() {
             let mut this = self;
-            this.date_created = sea_orm::ActiveValue::Set(now);
+            this.date_created = sea_orm::ActiveValue::Set(now.into());
             Ok(this)
         } else if !insert && self.date_updated.is_unchanged() {
             let mut this = self;
-            this.date_updated = sea_orm::ActiveValue::Set(Some(now));
+            this.date_updated = sea_orm::ActiveValue::Set(Some(now.into()));
             Ok(this)
         } else {
             Ok(self)

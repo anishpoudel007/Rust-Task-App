@@ -1,5 +1,5 @@
 use crate::models::_entities::task::ActiveModel;
-use sea_orm::DeriveIntoActiveModel;
+use sea_orm::{prelude::DateTimeWithTimeZone, DeriveIntoActiveModel};
 
 use serde::{Deserialize, Serialize};
 use validator::Validate;
@@ -10,6 +10,8 @@ pub struct CreateTaskRequest {
     pub title: String,
     pub description: String,
     pub status: String,
+    pub priority: String,
+    pub due_date: Option<DateTimeWithTimeZone>,
 }
 
 #[derive(Debug, Deserialize, Serialize, Validate)]
