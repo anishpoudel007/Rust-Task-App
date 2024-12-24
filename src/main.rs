@@ -99,6 +99,8 @@ async fn create_app() -> Router {
         //     middlewares::auth_guard::auth_guard,
         // ))
         .with_state(app_state)
+        .fallback(fallback_handler)
+        .layer(TraceLayer::new_for_http())
         .split_for_parts();
 
     router
@@ -110,32 +112,6 @@ async fn create_app() -> Router {
         // Alternative to above
         // .merge(RapiDoc::with_openapi("/api-docs/openapi2.json", api).path("/rapidoc"))
         .merge(Scalar::with_url("/scalar", api))
-
-    // Router::new()
-    //     .nest(
-    //         "/api/tasks",
-    //         controller::task_controller::get_routes().await,
-    //     )
-    //     .nest(
-    //         "/api/users",
-    //         controller::user_controller::get_routes().await,
-    //     )
-    //     // .nest("/api", controller::auth_controller::get_routes().await)
-    //     .nest(
-    //         "/api/auth",
-    //         controller::auth_controller::get_logout_route().await,
-    //     )
-    //     .route_layer(axum::middleware::from_fn_with_state(
-    //         app_state.clone(),
-    //         middlewares::auth_guard::auth_guard,
-    //     ))
-    //     .nest(
-    //         "/api/auth",
-    //         controller::auth_controller::get_login_route().await,
-    //     )
-    //     .with_state(app_state)
-    //     .fallback(fallback_handler)
-    //     .layer(TraceLayer::new_for_http())
 }
 
 async fn fallback_handler() -> StatusCode {
