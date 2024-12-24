@@ -14,7 +14,9 @@ use utoipa_axum::{router::OpenApiRouter, routes};
 use validator::Validate;
 
 use crate::{
-    api_response::{JsonResponse, ResponseMetadata},
+    api_response::{
+        DataResponse, ErrorResponse, JsonResponse, PaginatedResponse, ResponseMetadata,
+    },
     error::AppError,
     form::task_form::{
         CreateTaskRequest, UpdateTaskPriorityRequest, UpdateTaskRequest, UpdateTaskStatusRequest,
@@ -24,29 +26,31 @@ use crate::{
     AppState,
 };
 
-pub async fn get_routes() -> Router<Arc<AppState>> {
-    Router::new()
-        .route("/", get(get_tasks).post(create_task))
-        .route(
-            "/:task_uuid",
-            get(get_task).put(update_task).delete(delete_task),
-        )
-        .route("/:task_uuid/update_status", put(update_task_status))
-        .route("/:task_uuid/update_priority", put(update_task_priority))
-}
+// pub async fn get_routes() -> Router<Arc<AppState>> {
+//     Router::new()
+//         .route("/", get(get_tasks).post(create_task))
+//         .route(
+//             "/:task_uuid",
+//             get(get_task).put(update_task).delete(delete_task),
+//         )
+//         .route("/:task_uuid/update_status", put(update_task_status))
+//         .route("/:task_uuid/update_priority", put(update_task_priority))
+// }
 
 pub async fn get_router() -> OpenApiRouter<Arc<AppState>> {
-    OpenApiRouter::new().routes(routes!(get_tasks))
+    OpenApiRouter::new()
+        .routes(routes!(get_tasks))
+        .routes(routes!(get_task))
 }
 
 #[utoipa::path(
-        get,
-        path = "",
-        tag = "task",
-        responses(
-            (status = 200, description = "List all todos successfully", body = [TaskSerializer])
-        )
-    )]
+    get,
+    path = "",
+    tag = "task",
+    responses(
+        (status = 200, description = "List all todos successfully", body = PaginatedResponse)
+    )
+)]
 #[axum::debug_handler]
 pub async fn get_tasks(
     State(app_state): State<Arc<AppState>>,
@@ -54,14 +58,37 @@ pub async fn get_tasks(
     OriginalUri(original_uri): OriginalUri,
     // Extension(user_model): Extension<user::Model>,
 ) -> Result<impl IntoResponse, AppError> {
-    let tasks: Vec<TaskSerializer> = task::Entity::find()
-        .all(&app_state.db)
+    let mut task_query = task::Entity::find();
+
+    if let Some(status) = params.get("status") {
+        task_query = task_query.filter(task::Column::Status.eq(status))
+    }
+
+    let page = params
+        .get("page")
+        .and_then(|s| s.parse::<u64>().ok())
+        .unwrap_or(1);
+
+    let task_count = task_query.clone().count(&app_state.db).await?;
+
+    let response_metadata = ResponseMetadata {
+        count: task_count,
+        per_page: 10,
+        total_page: task_count.div_ceil(10),
+        current_url: Some(original_uri.to_string()),
+        ..Default::default()
+    };
+
+    let tasks: Vec<TaskSerializer> = task_query
+        .order_by(task::Column::DateCreated, sea_orm::Order::Desc)
+        .paginate(&app_state.db, 10)
+        .fetch_page(page - 1)
         .await?
-        .into_iter()
-        .map(TaskSerializer::from)
+        .iter()
+        .map(|task| TaskSerializer::from(task.clone()))
         .collect();
 
-    Ok(Json(tasks))
+    Ok(JsonResponse::paginate(tasks, response_metadata, None))
 }
 
 #[axum::debug_handler]
@@ -82,13 +109,22 @@ pub async fn create_task(
     Ok(JsonResponse::data(task, None))
 }
 
+#[utoipa::path(
+    get,
+    path = "/{task_uuid}",
+    tag = "task",
+    responses(
+        (status = 200, description = "Get task detail", body = DataResponse),
+        (status = 404, description = "Task Not Found", body = ErrorResponse)
+    )
+)]
+#[axum::debug_handler]
 pub async fn get_task(
     State(app_state): State<Arc<AppState>>,
     Path(task_uuid): Path<String>,
-    Extension(user_model): Extension<user::Model>,
+    // Extension(user_model): Extension<user::Model>,
 ) -> Result<impl IntoResponse, AppError> {
-    let task: TaskSerializer = user_model
-        .find_related(task::Entity)
+    let task: TaskSerializer = task::Entity::find()
         .filter(task::Column::Uuid.eq(task_uuid))
         .one(&app_state.db)
         .await?

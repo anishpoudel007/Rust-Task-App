@@ -1,6 +1,7 @@
 use axum::{response::IntoResponse, Json};
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
+use utoipa::ToSchema;
 
 #[derive(Serialize)]
 pub enum JsonResponse {
@@ -35,19 +36,19 @@ impl JsonResponse {
     }
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ToSchema, Deserialize)]
 pub struct ErrorResponse {
     pub error: Value,
     pub message: Option<String>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ToSchema)]
 pub struct DataResponse {
     pub data: Value,
     pub message: Option<String>,
 }
 
-#[derive(Debug, Serialize, Default)]
+#[derive(Debug, Serialize, Default, ToSchema)]
 pub struct ResponseMetadata {
     pub count: u64,
     pub per_page: u64,
@@ -71,7 +72,7 @@ impl ResponseMetadata {
     }
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Debug, Serialize, ToSchema)]
 pub struct PaginatedResponse {
     pub data: Value,
     pub _metadata: ResponseMetadata,
