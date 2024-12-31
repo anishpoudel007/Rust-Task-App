@@ -18,8 +18,8 @@ use crate::{
     form::task_form::{
         CreateTaskRequest, UpdateTaskPriorityRequest, UpdateTaskRequest, UpdateTaskStatusRequest,
     },
-    models::_entities::{task, user},
-    serializer::TaskSerializer,
+    models::_entities::{label, task, user},
+    serializer::{FullTaskSerializer, LabelSerializer, TaskSerializer},
     AppState,
 };
 
@@ -30,6 +30,7 @@ pub async fn get_routes() -> Router<Arc<AppState>> {
             "/:task_uuid",
             get(get_task).put(update_task).delete(delete_task),
         )
+        .route("/:task_uuid/full", get(get_task_full_details))
         .route("/:task_uuid/update_status", put(update_task_status))
         .route("/:task_uuid/update_priority", put(update_task_priority))
 }
@@ -106,6 +107,34 @@ pub async fn get_task(
         .into();
 
     Ok(JsonResponse::data(task, None))
+}
+
+pub async fn get_task_full_details(
+    State(app_state): State<Arc<AppState>>,
+    Path(task_uuid): Path<String>,
+    Extension(user_model): Extension<user::Model>,
+) -> Result<impl IntoResponse, AppError> {
+    let task = user_model
+        .find_related(task::Entity)
+        .filter(task::Column::Uuid.eq(task_uuid))
+        .one(&app_state.db)
+        .await?
+        .ok_or(sqlx::Error::RowNotFound)?;
+
+    let labels: Vec<LabelSerializer> = task
+        .find_related(label::Entity)
+        .all(&app_state.db)
+        .await?
+        .iter()
+        .map(|label| LabelSerializer::from(label.clone()))
+        .collect();
+
+    let full_task_serializer = FullTaskSerializer {
+        task: TaskSerializer::from(task),
+        labels,
+    };
+
+    Ok(JsonResponse::data(full_task_serializer, None))
 }
 
 pub async fn update_task(
