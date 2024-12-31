@@ -4,21 +4,11 @@ use sea_orm::entity::prelude::*;
 use serde::Serialize;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize)]
-#[sea_orm(table_name = "task")]
+#[sea_orm(table_name = "label")]
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
     pub title: String,
-    pub description: String,
-    #[sea_orm(column_type = "custom(\"enum_text\")")]
-    pub status: String,
-    #[sea_orm(column_type = "custom(\"enum_text\")")]
-    pub priority: String,
-    #[sea_orm(unique)]
-    pub uuid: String,
-    pub due_date: Option<DateTimeWithTimeZone>,
-    pub date_created: DateTimeWithTimeZone,
-    pub date_updated: Option<DateTimeWithTimeZone>,
     pub user_id: i32,
 }
 
