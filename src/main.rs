@@ -81,6 +81,10 @@ async fn create_app() -> Router {
             "/api/auth",
             controller::auth_controller::get_login_route().await,
         )
+        .nest(
+            "/api/auth",
+            controller::auth_controller::get_register_route().await,
+        )
         .with_state(app_state)
         .fallback(fallback_handler)
         .layer(TraceLayer::new_for_http())

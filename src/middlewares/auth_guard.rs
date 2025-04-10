@@ -1,13 +1,12 @@
 use std::sync::Arc;
 
+use crate::{error::AppError, utils::verify_token, AppState};
 use axum::{
     extract::{Request, State},
     http::header,
     middleware::Next,
     response::Response,
 };
-
-use crate::{error::AppError, utils::verify_token, AppState};
 
 pub async fn auth_guard(
     State(app_state): State<Arc<AppState>>,
