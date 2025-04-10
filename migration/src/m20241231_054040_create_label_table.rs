@@ -14,6 +14,13 @@ impl MigrationTrait for Migration {
                     .col(pk_auto(Label::Id))
                     .col(string(Label::Title))
                     .col(integer(Label::UserId))
+                    .index(
+                        Index::create()
+                            .name("title__user_id__unique_key")
+                            .col(Label::Title)
+                            .col(Label::UserId)
+                            .unique(),
+                    )
                     .foreign_key(
                         ForeignKey::create()
                             .name("fk-label-user_id")
