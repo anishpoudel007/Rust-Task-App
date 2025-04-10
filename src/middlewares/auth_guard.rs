@@ -19,8 +19,8 @@ pub async fn auth_guard(
         .get(header::AUTHORIZATION)
         .and_then(|header| header.to_str().ok())
         .and_then(|header| header.strip_prefix("Bearer "))
-        .ok_or(AppError::GenericError(
-            "No token found in header.".to_string(),
+        .ok_or(AppError::Unauthorized(
+            "Authentication credentials were not provided.".into(),
         ))?;
 
     let user = verify_token(app_state, token).await?;
