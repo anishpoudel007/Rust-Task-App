@@ -84,19 +84,32 @@ pub async fn update_label(
     Extension(user): Extension<user::Model>,
     Json(payload): Json<UpdateLabelRequest>,
 ) -> Result<impl IntoResponse, AppError> {
-    let mut label: label::ActiveModel = user
+    payload.validate()?;
+
+    let label = user
         .find_related(label::Entity)
         .filter(label::Column::Id.eq(label_id))
         .one(&app_state.db)
         .await?
-        .ok_or(sea_orm::DbErr::RecordNotFound("Label not found.".into()))?
-        .into();
+        .ok_or(sea_orm::DbErr::RecordNotFound("Label not found.".into()))?;
 
+    let existing_label = label::Entity::find()
+        .filter(label::Column::UserId.eq(user.id))
+        .filter(label::Column::Title.eq(&payload.title))
+        .filter(label::Column::Title.ne(&label.title))
+        .one(&app_state.db)
+        .await?;
+
+    if existing_label.is_some() {
+        return Err(AppError::GenericError("Label already exists.".to_string()));
+    }
+
+    let mut label: label::ActiveModel = label.into();
     label.title = Set(payload.title);
 
-    let label = label.update(&app_state.db).await?;
+    let updated_label = label.update(&app_state.db).await?;
 
-    Ok(JsonResponse::data(label, None))
+    Ok(JsonResponse::data(updated_label, None))
 }
 
 pub async fn delete_label(
