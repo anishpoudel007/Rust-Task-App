@@ -44,13 +44,22 @@ pub async fn create_label(
 ) -> Result<impl IntoResponse, AppError> {
     payload.validate()?;
 
-    let mut label = payload.into_active_model();
+    let existing_label = label::Entity::find()
+        .filter(label::Column::UserId.eq(user.id))
+        .filter(label::Column::Title.eq(&payload.title))
+        .one(&app_state.db)
+        .await?;
 
+    if existing_label.is_some() {
+        return Err(AppError::GenericError("Label already exists.".to_string()));
+    }
+
+    let mut label = payload.into_active_model();
     label.user_id = Set(user.id);
 
-    let label = label.insert(&app_state.db).await?;
+    let created_label = label.insert(&app_state.db).await?;
 
-    Ok(JsonResponse::data(label, None))
+    Ok(JsonResponse::data(created_label, None))
 }
 
 #[axum::debug_handler]
