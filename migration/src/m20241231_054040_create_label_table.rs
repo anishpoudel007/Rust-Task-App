@@ -14,6 +14,7 @@ impl MigrationTrait for Migration {
                     .col(pk_auto(Label::Id))
                     .col(string(Label::Title))
                     .col(integer(Label::UserId))
+                    .col(string(Label::Color).default("#FFFFFF"))
                     .index(
                         Index::create()
                             .name("title__user_id__unique_key")
@@ -47,6 +48,7 @@ enum Label {
     Id,
     UserId,
     Title,
+    Color,
 }
 
 #[derive(DeriveIden)]
