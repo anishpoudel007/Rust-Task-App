@@ -48,7 +48,7 @@ pub async fn verify_token(app_state: Arc<AppState>, token: &str) -> Result<user:
         .filter(user::Column::Email.eq(token_claim.claims.sub))
         .one(&app_state.db)
         .await?
-        .ok_or(sqlx::Error::RowNotFound)?;
+        .ok_or(sea_orm::DbErr::RecordNotFound("User not found.".into()))?;
 
     Ok(user)
 }

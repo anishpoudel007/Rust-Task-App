@@ -64,7 +64,7 @@ pub async fn get_label(
         .filter(label::Column::Id.eq(label_id))
         .one(&app_state.db)
         .await?
-        .ok_or(sqlx::Error::RowNotFound)?;
+        .ok_or(sea_orm::DbErr::RecordNotFound("Label not found.".into()))?;
 
     Ok(JsonResponse::data(label, None))
 }
@@ -80,7 +80,7 @@ pub async fn update_label(
         .filter(label::Column::Id.eq(label_id))
         .one(&app_state.db)
         .await?
-        .ok_or(sqlx::Error::RowNotFound)?
+        .ok_or(sea_orm::DbErr::RecordNotFound("Label not found.".into()))?
         .into();
 
     label.title = Set(payload.title);
@@ -100,7 +100,7 @@ pub async fn delete_label(
         .filter(label::Column::Id.eq(label_id))
         .one(&app_state.db)
         .await?
-        .ok_or(sqlx::Error::RowNotFound)?;
+        .ok_or(sea_orm::DbErr::RecordNotFound("Label not found.".into()))?;
 
     let res = label.delete(&app_state.db).await?;
 

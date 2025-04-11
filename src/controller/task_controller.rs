@@ -142,7 +142,7 @@ pub async fn get_task(
         .filter(task::Column::Uuid.eq(task_uuid))
         .one(&app_state.db)
         .await?
-        .ok_or(sqlx::Error::RowNotFound)?
+        .ok_or(sea_orm::DbErr::RecordNotFound("Task not found.".into()))?
         .into();
 
     Ok(JsonResponse::data(task, None))
@@ -158,7 +158,7 @@ pub async fn get_task_full_details(
         .filter(task::Column::Uuid.eq(task_uuid))
         .one(&app_state.db)
         .await?
-        .ok_or(sqlx::Error::RowNotFound)?;
+        .ok_or(sea_orm::DbErr::RecordNotFound("Task not found.".into()))?;
 
     let labels: Vec<LabelSerializer> = task
         .find_related(label::Entity)
@@ -187,7 +187,7 @@ pub async fn update_task(
         .filter(task::Column::Uuid.eq(task_uuid))
         .one(&app_state.db)
         .await?
-        .ok_or(sqlx::Error::RowNotFound)?;
+        .ok_or(sea_orm::DbErr::RecordNotFound("Task not found.".into()))?;
 
     // update labels start
     let assigned_labels: Vec<String> = task
@@ -257,7 +257,7 @@ pub async fn delete_task(
         .filter(task::Column::Uuid.eq(task_uuid))
         .one(&app_state.db)
         .await?
-        .ok_or(sqlx::Error::RowNotFound)?;
+        .ok_or(sea_orm::DbErr::RecordNotFound("Task not found.".into()))?;
 
     let res = task_model.delete(&app_state.db).await?;
 
@@ -280,7 +280,7 @@ pub async fn update_task_status(
         .filter(task::Column::Uuid.eq(task_uuid))
         .one(&app_state.db)
         .await?
-        .ok_or(sqlx::Error::RowNotFound)?
+        .ok_or(sea_orm::DbErr::RecordNotFound("Task not found.".into()))?
         .into();
 
     task.status = Set(task_request.status);
@@ -301,7 +301,7 @@ pub async fn update_task_priority(
         .filter(task::Column::Uuid.eq(task_uuid))
         .one(&app_state.db)
         .await?
-        .ok_or(sqlx::Error::RowNotFound)?
+        .ok_or(sea_orm::DbErr::RecordNotFound("Task not found.".into()))?
         .into();
 
     task.priority = Set(task_request.priority);
