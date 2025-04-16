@@ -96,7 +96,7 @@ pub async fn create_task(
                     status: Set(payload.status),
                     priority: Set(payload.priority),
                     uuid: Set(uuid_v4),
-                    due_date: Set(payload.due_date),
+                    due_date: payload.due_date.map_or_else(|| NotSet, |v| Set(Some(v))),
                     date_created: NotSet,
                     date_updated: NotSet,
                     user_id: Set(user_model.id),
@@ -234,6 +234,7 @@ pub async fn update_task(
                 task.title = Set(payload.title);
                 task.description = Set(payload.description.unwrap());
                 task.status = Set(payload.status);
+                task.due_date = payload.due_date.map_or_else(|| NotSet, |v| Set(Some(v)));
                 task.user_id = Set(user_model.id);
 
                 task.update(txn).await

@@ -45,7 +45,13 @@ impl MigrationTrait for Migration {
                     NEW.date_updated := CURRENT_TIMESTAMP;
                     RETURN NEW;
                 END;
-                $$ LANGUAGE plpgsql;",
+                $$ LANGUAGE plpgsql;
+
+                CREATE TRIGGER set_date_updated
+                BEFORE UPDATE ON task
+                FOR EACH ROW
+                EXECUTE FUNCTION update_date_updated_column();
+                ",
             )
             .await?;
 

@@ -20,6 +20,7 @@ pub struct UpdateTaskRequest {
     pub title: String,
     pub description: Option<String>,
     pub status: String,
+    pub due_date: Option<DateTimeWithTimeZone>,
     pub labels: Vec<String>,
 }
 
