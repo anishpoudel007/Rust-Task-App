@@ -64,6 +64,10 @@ async fn create_app() -> Router {
             "/api/users",
             controller::user_controller::get_routes().await,
         )
+        .nest(
+            "/api/labels",
+            controller::label_controller::get_routes().await,
+        )
         // .nest("/api", controller::auth_controller::get_routes().await)
         .nest(
             "/api/auth",
@@ -76,6 +80,10 @@ async fn create_app() -> Router {
         .nest(
             "/api/auth",
             controller::auth_controller::get_login_route().await,
+        )
+        .nest(
+            "/api/auth",
+            controller::auth_controller::get_register_route().await,
         )
         .with_state(app_state)
         .fallback(fallback_handler)

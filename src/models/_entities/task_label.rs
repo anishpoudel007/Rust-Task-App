@@ -4,28 +4,32 @@ use sea_orm::entity::prelude::*;
 use serde::Serialize;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel, Eq, Serialize)]
-#[sea_orm(table_name = "user")]
+#[sea_orm(table_name = "task_label")]
 pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
-    pub name: String,
-    #[sea_orm(unique)]
-    pub username: String,
-    #[sea_orm(unique)]
-    pub email: String,
-    pub password: String,
-    pub date_created: DateTimeWithTimeZone,
-    pub date_updated: Option<DateTimeWithTimeZone>,
+    pub task_id: i32,
+    pub label_id: i32,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
 pub enum Relation {
-    #[sea_orm(has_many = "super::label::Entity")]
+    #[sea_orm(
+        belongs_to = "super::label::Entity",
+        from = "Column::LabelId",
+        to = "super::label::Column::Id",
+        on_update = "Cascade",
+        on_delete = "Cascade"
+    )]
     Label,
-    #[sea_orm(has_many = "super::task::Entity")]
+    #[sea_orm(
+        belongs_to = "super::task::Entity",
+        from = "Column::TaskId",
+        to = "super::task::Column::Id",
+        on_update = "Cascade",
+        on_delete = "Cascade"
+    )]
     Task,
-    #[sea_orm(has_many = "super::user_profile::Entity")]
-    UserProfile,
 }
 
 impl Related<super::label::Entity> for Entity {
@@ -37,11 +41,5 @@ impl Related<super::label::Entity> for Entity {
 impl Related<super::task::Entity> for Entity {
     fn to() -> RelationDef {
         Relation::Task.def()
-    }
-}
-
-impl Related<super::user_profile::Entity> for Entity {
-    fn to() -> RelationDef {
-        Relation::UserProfile.def()
     }
 }

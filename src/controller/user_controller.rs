@@ -86,7 +86,7 @@ pub async fn get_user(
         .find_also_related(user_profile::Entity)
         .one(&app_state.db)
         .await?
-        .ok_or(sqlx::Error::RowNotFound)?
+        .ok_or(sea_orm::DbErr::RecordNotFound("User not found.".into()))?
         .into();
 
     Ok(JsonResponse::data(user, None))
@@ -136,7 +136,7 @@ pub async fn update_user(
     let user = user::Entity::find_by_id(user_id)
         .one(&app_state.db)
         .await?
-        .ok_or(sqlx::Error::RowNotFound)?;
+        .ok_or(sea_orm::DbErr::RecordNotFound("User not found.".into()))?;
 
     user_request.validate()?;
 
@@ -184,7 +184,7 @@ pub async fn get_user_tasks(
     let user = user::Entity::find_by_id(user_id)
         .one(&app_state.db)
         .await?
-        .ok_or(sqlx::Error::RowNotFound)?;
+        .ok_or(sea_orm::DbErr::RecordNotFound("User not found.".into()))?;
 
     let task_query = user.find_related(task::Entity);
 

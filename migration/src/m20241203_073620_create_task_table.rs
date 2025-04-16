@@ -1,4 +1,3 @@
-use sea_orm::{EnumIter, Iterable};
 use sea_orm_migration::{prelude::*, schema::*};
 
 #[derive(DeriveMigrationName)]
@@ -13,28 +12,10 @@ impl MigrationTrait for Migration {
                     .table(Task::Table)
                     .if_not_exists()
                     .col(pk_auto(Task::Id))
-                    .col(string(Task::Title))
-                    .col(string(Task::Description))
-                    .col(
-                        enumeration(Task::Status, StatusEnum::Table, StatusEnum::iter().skip(1))
-                            .default(StatusEnum::Pending.to_string())
-                            .check(
-                                Expr::col(Task::Status)
-                                    .is_in(StatusEnum::iter().skip(1).map(|item| item.to_string())),
-                            ),
-                    )
-                    .col(
-                        enumeration(
-                            Task::Priority,
-                            PriorityEnum::Table,
-                            PriorityEnum::iter().skip(1),
-                        )
-                        .default(PriorityEnum::High.to_string())
-                        .check(
-                            Expr::col(Task::Priority)
-                                .is_in(PriorityEnum::iter().skip(1).map(|item| item.to_string())),
-                        ),
-                    )
+                    .col(string(Task::Title).string_len(400))
+                    .col(text(Task::Description))
+                    .col(string(Task::Status).default("pending"))
+                    .col(string(Task::Priority).default("low"))
                     .col(string(Task::Uuid).unique_key())
                     .col(timestamp_with_time_zone_null(Task::DueDate))
                     .col(
@@ -58,12 +39,19 @@ impl MigrationTrait for Migration {
         manager
             .get_connection()
             .execute_unprepared(
-                "CREATE TRIGGER set_date_updated
-                AFTER UPDATE ON task
-                FOR EACH ROW
+                "CREATE OR REPLACE FUNCTION update_date_updated_column()
+                RETURNS TRIGGER AS $$
                 BEGIN
-                    UPDATE task SET date_updated = CURRENT_TIMESTAMP WHERE id = NEW.id;
-                END;",
+                    NEW.date_updated := CURRENT_TIMESTAMP;
+                    RETURN NEW;
+                END;
+                $$ LANGUAGE plpgsql;
+
+                CREATE TRIGGER set_date_updated
+                BEFORE UPDATE ON task
+                FOR EACH ROW
+                EXECUTE FUNCTION update_date_updated_column();
+                ",
             )
             .await?;
 
@@ -73,7 +61,9 @@ impl MigrationTrait for Migration {
     async fn down(&self, manager: &SchemaManager) -> Result<(), DbErr> {
         manager
             .drop_table(Table::drop().table(Task::Table).to_owned())
-            .await
+            .await?;
+
+        Ok(())
     }
 }
 
@@ -92,24 +82,8 @@ enum Task {
     DateUpdated,
 }
 
-#[derive(Iden, EnumIter)]
-enum StatusEnum {
-    Table,
-    Pending,
-    InProgress,
-    Completed,
-}
-
 #[derive(DeriveIden)]
 enum User {
     Table,
     Id,
-}
-
-#[derive(Iden, EnumIter)]
-enum PriorityEnum {
-    Table,
-    Low,
-    Medium,
-    High,
 }

@@ -1,4 +1,4 @@
-use sea_orm::{ActiveModelBehavior, ConnectionTrait, DbErr, Related, RelationDef, RelationTrait};
+use sea_orm::{ActiveModelBehavior, ConnectionTrait, DbErr};
 
 use super::_entities::user::ActiveModel;
 

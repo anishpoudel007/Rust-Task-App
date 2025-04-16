@@ -42,13 +42,13 @@ pub async fn verify_token(app_state: Arc<AppState>, token: &str) -> Result<user:
         &DecodingKey::from_secret(jwt_secret.as_ref()),
         &Validation::default(),
     )
-    .map_err(|_| AppError::GenericError("Invalid Token".to_string()))?;
+    .map_err(|_| AppError::Unauthorized("Authentication credentials are invalid.".to_string()))?;
 
     let user = user::Entity::find()
         .filter(user::Column::Email.eq(token_claim.claims.sub))
         .one(&app_state.db)
         .await?
-        .ok_or(sqlx::Error::RowNotFound)?;
+        .ok_or(sea_orm::DbErr::RecordNotFound("User not found.".into()))?;
 
     Ok(user)
 }

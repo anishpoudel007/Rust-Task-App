@@ -1,13 +1,12 @@
 use std::sync::Arc;
 
+use crate::{error::AppError, utils::verify_token, AppState};
 use axum::{
     extract::{Request, State},
     http::header,
     middleware::Next,
     response::Response,
 };
-
-use crate::{error::AppError, utils::verify_token, AppState};
 
 pub async fn auth_guard(
     State(app_state): State<Arc<AppState>>,
@@ -19,8 +18,8 @@ pub async fn auth_guard(
         .get(header::AUTHORIZATION)
         .and_then(|header| header.to_str().ok())
         .and_then(|header| header.strip_prefix("Bearer "))
-        .ok_or(AppError::GenericError(
-            "No token found in header.".to_string(),
+        .ok_or(AppError::Unauthorized(
+            "Authentication credentials were not provided.".into(),
         ))?;
 
     let user = verify_token(app_state, token).await?;

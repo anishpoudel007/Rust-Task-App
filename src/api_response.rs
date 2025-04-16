@@ -28,7 +28,7 @@ impl JsonResponse {
         message: Option<String>,
     ) -> JsonResponse {
         Self::Paginate(PaginatedResponse {
-            _metadata: metadata,
+            metadata,
             data: json!(data),
             message: message.unwrap_or("Data retrieved successfully".to_string()),
         })
@@ -74,7 +74,7 @@ impl ResponseMetadata {
 #[derive(Debug, Serialize)]
 pub struct PaginatedResponse {
     pub data: Value,
-    pub _metadata: ResponseMetadata,
+    pub metadata: ResponseMetadata,
     pub message: String,
 }
 
