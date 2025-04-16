@@ -9,10 +9,9 @@ pub struct Model {
     #[sea_orm(primary_key)]
     pub id: i32,
     pub title: String,
+    #[sea_orm(column_type = "Text")]
     pub description: String,
-    #[sea_orm(column_type = "custom(\"enum_text\")")]
     pub status: String,
-    #[sea_orm(column_type = "custom(\"enum_text\")")]
     pub priority: String,
     #[sea_orm(unique)]
     pub uuid: String,
