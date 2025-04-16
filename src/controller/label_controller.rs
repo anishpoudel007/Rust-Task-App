@@ -23,7 +23,7 @@ pub async fn get_routes() -> Router<Arc<AppState>> {
     Router::new()
         .route("/", get(get_labels).post(create_label))
         .route(
-            "/:label_id",
+            "/{label_id}",
             get(get_label).put(update_label).delete(delete_label),
         )
 }

@@ -27,12 +27,12 @@ pub async fn get_routes() -> Router<Arc<AppState>> {
     Router::new()
         .route("/", get(get_tasks).post(create_task))
         .route(
-            "/:task_uuid",
+            "/{task_uuid}",
             get(get_task).put(update_task).delete(delete_task),
         )
-        .route("/:task_uuid/full", get(get_task_full_details))
-        .route("/:task_uuid/update_status", put(update_task_status))
-        .route("/:task_uuid/update_priority", put(update_task_priority))
+        .route("/{task_uuid}/full", get(get_task_full_details))
+        .route("/{task_uuid}/update_status", put(update_task_status))
+        .route("/{task_uuid}/update_priority", put(update_task_priority))
 }
 
 #[axum::debug_handler]

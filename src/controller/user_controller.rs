@@ -24,10 +24,10 @@ pub async fn get_routes() -> Router<Arc<AppState>> {
     Router::new()
         .route("/", get(get_users).post(create_user))
         .route(
-            "/:user_id",
+            "/{user_id}",
             get(get_user).put(update_user).delete(delete_user),
         )
-        .route("/:user_id/tasks", get(get_user_tasks))
+        .route("/{user_id}/tasks", get(get_user_tasks))
 }
 
 #[axum::debug_handler()]
