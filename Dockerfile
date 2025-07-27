@@ -24,11 +24,7 @@ RUN apt-get update && \
         libssl-dev && \
     rm -rf /var/lib/apt/lists/*
 
-# Copy source code using bind mounts or traditional COPY (fallback if needed)
-# You can use Docker buildkit bind mounts, or fall back to this:
-# COPY . .
-
-# If using Docker BuildKit with bind mounts:
+# Build the app using bind mounts
 RUN --mount=type=bind,source=src,target=src \
     --mount=type=bind,source=migration,target=migration \
     --mount=type=bind,source=Cargo.toml,target=Cargo.toml \
@@ -43,12 +39,20 @@ cp ./target/release/$APP_NAME /bin/server
 # Stage 2: Final minimal runtime image
 FROM debian:bookworm-slim as final
 
+# Add OpenSSL runtime library
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libssl3 && \
+    rm -rf /var/lib/apt/lists/*
+
 # Add a non-root user
 ARG UID=10001
 RUN useradd -u ${UID} -r -s /usr/sbin/nologin appuser
 
 # Copy the built binary from the builder
 COPY --from=build /bin/server /bin/server
+
+# Copy the .env file
+# COPY .env /bin/server/.env
 
 USER appuser
 

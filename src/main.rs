@@ -22,7 +22,7 @@ struct AppState {
 
 #[tokio::main]
 async fn main() {
-    dotenvy::dotenv().expect("Unable to access .env file");
+    // dotenvy::dotenv().expect("Unable to access .env file");
 
     tracing_subscriber::fmt()
         .with_max_level(tracing::Level::DEBUG)
